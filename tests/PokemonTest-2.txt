@@ -1,0 +1,7 @@
+6
+4
+16
+2_Pokemon.txt
+2_Party1.txt
+2_Party2.txt
+2_Party3.txt
