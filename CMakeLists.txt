@@ -13,6 +13,6 @@ set(CMAKE_CXX_STANDARD_INCLUDE_DIRECTORIES ${CMAKE_CXX_IMPLICIT_INCLUDE_DIRECTOR
 add_compile_options(-Wall -Wextra -O2 -pthread)
 
 # files to compile
-add_executable(monte_carlo main.c mc-thread.c)
+add_executable(monte_carlo main.c mc-thread.c ThreadSafe_PRNG.c)
 
 file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/tests" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")

@@ -1,4 +1,4 @@
-#include <stdio.h> /* fopen, fscanf, fclose */
+#include <stdio.h> /* fodetails->thread_count, fscanf, fclose */
 #include <stdlib.h> /* exit, malloc          */
 
 #include <assert.h>
@@ -7,7 +7,6 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "ThreadSafe_PRNG.h"
 #include "mc-head.h"
 
 void GetSimSetup(const char *filename, char filepaths[][128], int *numFiles, int *numThreads, int *eventNumber) {
@@ -63,11 +62,16 @@ int main(int argc, char **argv) {
   }
 
   // Wait for child threads using pthread_join
+  int success_count = 0;
   for (int i = 0; i < event_details->thread_count; i++) {
     // TODO: Consider using the thread_return value
-    pthread_join(threads[i], NULL);
+    int a = 0;
+    pthread_join(threads[i], (void *) &a);
+    success_count += a;
   }
+
   // Cleanup
+  free(threads);
   EventDetailsDelete(event_details);
 
   return 0;
@@ -104,6 +108,17 @@ EventDetails *EventDetailsCreate(
   }
 
   return event_details;
+}
+
+DrawPool **EventDetailsGetShuffledCards(EventDetails *details, randData *rng_machine) {
+  DrawPool **output = calloc(details->draw_pile_count, sizeof(DrawPool *));
+
+  for (int i = 0; i < details->draw_pile_count; i++) {
+    output[i] = DrawPoolClone(details->draw_piles[i]);
+    DrawPoolShuffle(output[i], rng_machine);
+  }
+
+  return output;
 }
 
 void EventDetailsDelete(EventDetails *self) {
@@ -298,8 +313,14 @@ DrawPool *DrawPoolClone(DrawPool *other) {
   return output;
 }
 
-void DrawPoolShuffle(DrawPool *other) {
-  // TODO: Write down how we should get the seed
+void DrawPoolShuffle(DrawPool *self, randData *rng_machine) {
+  for (int i = 0; i < self->card_count - 1; i++) {
+    int swap_position = RandomInt(i + 1, self->card_count - 1, rng_machine);
+    int swap_value = self->card_ids[swap_position];
+
+    self->card_ids[swap_position] = self->card_ids[i];
+    self->card_ids[i] = swap_value;
+  }
 }
 
 void DrawPoolDelete(DrawPool *self) {
