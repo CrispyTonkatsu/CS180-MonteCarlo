@@ -49,26 +49,31 @@ int main(int argc, char **argv) {
   GetSimSetup(argv[1], filepaths, &numFiles, &numThreads, &eventNumber);
 
   // Setup for the threads
-  EventDetails *event_details = EventDetailsCreate(filepaths[0], &filepaths[1], numFiles - 1, eventNumber, numThreads);
+  EventDetails *event_details = EventDetailsCreate(filepaths[0], &filepaths[1], numFiles - 1, eventNumber);
   if (event_details == NULL) {
     printf("Failed to get all required data.\nRead above messages to see why.\n");
     return -1;
   }
-  pthread_t *threads = calloc(event_details->thread_count, sizeof(pthread_t));
+  pthread_t *threads = calloc(numThreads, sizeof(pthread_t));
 
   // Code to create and give the pointer to the threads
-  for (int i = 0; i < event_details->thread_count; i++) {
+  for (int i = 0; i < numThreads; i++) {
     pthread_create(&threads[i], NULL, &EventRun, event_details);
   }
 
   // Wait for child threads using pthread_join
   int success_count = 0;
-  for (int i = 0; i < event_details->thread_count; i++) {
-    // TODO: Consider using the thread_return value
-    int a = 0;
+  for (int i = 0; i < numThreads; i++) {
+    int *a = NULL;
     pthread_join(threads[i], (void *) &a);
-    success_count += a;
+    success_count += *a;
+    free(a);
   }
+
+  float successes = (float) success_count;
+  float total_iter = 2500000.f; // NOLINT *magic*
+  float total_threads = (float) numThreads;
+  printf("Output of simulation: %f", (successes / (total_iter * total_threads)));
 
   // Cleanup
   free(threads);
@@ -79,8 +84,7 @@ int main(int argc, char **argv) {
 
 // EventDetails Implementation
 
-EventDetails *EventDetailsCreate(
-    char *card_file, char (*draw_pool_files)[128], int draw_pool_count, int event_number, int thread_count) {
+EventDetails *EventDetailsCreate(char *card_file, char (*draw_pool_files)[128], int draw_pool_count, int event_number) {
   CardPack *cards = CardPackCreate(card_file);
   if (cards == NULL) {
     printf("Failed to create the card database.\n");
@@ -89,7 +93,6 @@ EventDetails *EventDetailsCreate(
 
   EventDetails *event_details = calloc(1, sizeof(EventDetails));
   // Non-allocated memory
-  event_details->thread_count = thread_count;
   event_details->event_number = event_number;
   // Allocated memory
   event_details->pack = cards;
@@ -224,7 +227,9 @@ int CardPackIndex(CardPack *pack, int card_id, int card_field) {
   return pack->card_data[(card_id * pack->field_count) + (card_field % pack->field_count)];
 }
 
-int *CardPackGetCard(CardPack *pack, int card_id) { return &(pack->card_data[card_id]); }
+int *CardPackGetCard(CardPack *pack, int card_id) { 
+  return &(pack->card_data[card_id]); 
+}
 
 void CardPackDelete(CardPack *pack) {
   if (pack) {
@@ -315,12 +320,19 @@ DrawPool *DrawPoolClone(DrawPool *other) {
 
 void DrawPoolShuffle(DrawPool *self, randData *rng_machine) {
   for (int i = 0; i < self->card_count - 1; i++) {
-    int swap_position = RandomInt(i + 1, self->card_count - 1, rng_machine);
+    int swap_position = RandomInt(i, self->card_count - 1, rng_machine);
     int swap_value = self->card_ids[swap_position];
 
     self->card_ids[swap_position] = self->card_ids[i];
     self->card_ids[i] = swap_value;
   }
+  self->top_index = 0;
+}
+
+int *DrawPoolDrawCard(DrawPool *self, CardPack *pack) {
+  int *output = CardPackGetCard(pack, self->card_ids[self->top_index]);
+  self->top_index++;
+  return output;
 }
 
 void DrawPoolDelete(DrawPool *self) {

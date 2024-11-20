@@ -10,9 +10,10 @@ set(CMAKE_C_STANDARD_INCLUDE_DIRECTORIES ${CMAKE_C_IMPLICIT_INCLUDE_DIRECTORIES}
 set(CMAKE_CXX_STANDARD_INCLUDE_DIRECTORIES ${CMAKE_CXX_IMPLICIT_INCLUDE_DIRECTORIES})
 
 # Compile Options
-add_compile_options(-Wall -Wextra -O2 -pthread)
+add_compile_options(-Wall -Wextra -O1 -pthread)
 
 # files to compile
 add_executable(monte_carlo main.c mc-thread.c ThreadSafe_PRNG.c)
 
 file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/tests" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
+file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/decks" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")

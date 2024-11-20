@@ -1,18 +1,27 @@
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "mc-head.h"
 
-int EventTest(EventDetails *details) {
-  printf("%d", details->draw_pile_count);
-  return 1;
+// TODO: Get rid of this event and actually start doing the assignment's events
+int EventTest(CardPack *pack, DrawPool **draw_piles, int draw_pile_count) {
+  if (draw_pile_count < 1) {
+    printf("Not enough draw piles. Needs: 1\n");
+    return 0;
+  }
+
+  // TODO: Fix issue with drawing cards only giving you access to the first element 
+  int *card = DrawPoolDrawCard(draw_piles[0], pack);
+  return card[1] == 1;
 }
 
-int (*const events[])(EventDetails *) = {
-    EventTest,
+int (*const events[])(CardPack *, DrawPool **, int) = {
+    &EventTest,
 };
 
+// TODO: Get rid of this and get it into the EventDetails struct when we can finally read it off somewhere
 int const event_iterations[] = {
-    0,
+    2500000,
 };
 
 void *EventRun(void *data) {
@@ -27,15 +36,27 @@ void *EventRun(void *data) {
   DrawPool **draw_piles = EventDetailsGetShuffledCards(details, &rng_machine);
 
   // Running the event
-  events[0](details);
+  int successes = 0;
+  for (int i = 0; i < event_iterations[details->event_number]; i++) {
+    successes += events[details->event_number](details->pack, draw_piles, details->draw_pile_count);
+
+    // TODO: Make sure that it should be re-shuffled every time
+    for (int j = 0; j < details->draw_pile_count; j++) {
+      DrawPoolShuffle(draw_piles[j], &rng_machine);
+    }
+  }
+  printf("Successes: %d\n", successes);
 
   // Cleanup of the hands used for the simulation
-  for(int i = 0; i<details->draw_pile_count; i++){
+  for (int i = 0; i < details->draw_pile_count; i++) {
     DrawPoolDelete(draw_piles[i]);
   }
+  free(draw_piles);
 
   // Returning the success count for this thread
-  return (void *) 0;
+  int *output = calloc(1, sizeof(int));
+  *output = successes;
+  return (void *) output;
 }
 
 // Pokemon Formulas

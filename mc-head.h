@@ -33,6 +33,8 @@ DrawPool *DrawPoolClone(DrawPool *other);
 
 void DrawPoolShuffle(DrawPool *self, randData *rng_machine);
 
+int *DrawPoolDrawCard(DrawPool *self, CardPack* pack);
+
 void DrawPoolDelete(DrawPool *self);
 
 // EventDetails Struct
@@ -42,7 +44,6 @@ typedef struct {
   DrawPool **draw_piles;
   int draw_pile_count;
   int event_number;
-  int thread_count;
 
   // HACK:
   // Come up with this number for now: 2.5 Million.
@@ -50,8 +51,7 @@ typedef struct {
   int iteration_count;
 } EventDetails;
 
-EventDetails *EventDetailsCreate(
-    char *card_file, char (*draw_pool_files)[128], int draw_pool_count, int event_number, int thread_count);
+EventDetails *EventDetailsCreate(char *card_file, char (*draw_pool_files)[128], int draw_pool_count, int event_number);
 
 DrawPool **EventDetailsGetShuffledCards(EventDetails *details, randData *rng_machine);
 
