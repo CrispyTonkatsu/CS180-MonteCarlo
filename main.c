@@ -227,9 +227,7 @@ int CardPackIndex(CardPack *pack, int card_id, int card_field) {
   return pack->card_data[(card_id * pack->field_count) + (card_field % pack->field_count)];
 }
 
-int *CardPackGetCard(CardPack *pack, int card_id) { 
-  return &(pack->card_data[card_id]); 
-}
+int *CardPackGetCard(CardPack *pack, int card_id) { return &(pack->card_data[card_id * pack->field_count]); }
 
 void CardPackDelete(CardPack *pack) {
   if (pack) {

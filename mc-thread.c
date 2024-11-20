@@ -10,7 +10,7 @@ int EventTest(CardPack *pack, DrawPool **draw_piles, int draw_pile_count) {
     return 0;
   }
 
-  // TODO: Fix issue with drawing cards only giving you access to the first element 
+  // TODO: Fix issue with drawing cards only giving you access to the first element
   int *card = DrawPoolDrawCard(draw_piles[0], pack);
   return card[1] == 1;
 }
