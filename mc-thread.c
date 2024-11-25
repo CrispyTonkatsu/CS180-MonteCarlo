@@ -3,25 +3,60 @@
 
 #include "mc-head.h"
 
-// TODO: Get rid of this event and actually start doing the assignment's events
-int EventTest(CardPack *pack, DrawPool **draw_piles, int draw_pile_count) {
+int RoyalFlush(CardPack *pack, DrawPool **draw_piles, int draw_pile_count) {
   if (draw_pile_count < 1) {
     printf("Not enough draw piles. Needs: 1\n");
     return 0;
   }
 
-  // TODO: Fix issue with drawing cards only giving you access to the first element
+  const int value = 0;
+  const int suit = 2;
+
+  int first_suit = 0;
+  bool found[] = {false, false, false, false, false};
+
+  for (int i = 0; i < 5; i++) {
+    int *card = DrawPoolDrawCard(draw_piles[0], pack);
+
+    if (i == 0) {
+      first_suit = card[suit];
+    } else if (card[suit] != first_suit) {
+      return false;
+    }
+
+    if (card[value] == 1) {
+      found[4] = true;
+    } else if (card[value] >= 10) {
+      found[card[value] - 10] = true;
+    } else {
+      return false;
+    }
+  }
+
+  for (int i = 0; i < 5; i++) {
+    if (!found[i]) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+int Fifty50(CardPack *pack, DrawPool **draw_piles, int draw_pile_count) {
+  (void) draw_pile_count;
   int *card = DrawPoolDrawCard(draw_piles[0], pack);
-  return card[1] == 1;
+  return card[1] == 0;
 }
 
 int (*const events[])(CardPack *, DrawPool **, int) = {
-    &EventTest,
+    &RoyalFlush,
+    &Fifty50,
 };
 
 // TODO: Get rid of this and get it into the EventDetails struct when we can finally read it off somewhere
 int const event_iterations[] = {
     2500000,
+    1,
 };
 
 void *EventRun(void *data) {
@@ -37,13 +72,12 @@ void *EventRun(void *data) {
 
   // Running the event
   int successes = 0;
-  for (int i = 0; i < event_iterations[details->event_number]; i++) {
-    successes += events[details->event_number](details->pack, draw_piles, details->draw_pile_count);
-
-    // TODO: Make sure that it should be re-shuffled every time
+  for (int i = 0; i < event_iterations[details->event_number - 1]; i++) {
     for (int j = 0; j < details->draw_pile_count; j++) {
       DrawPoolShuffle(draw_piles[j], &rng_machine);
     }
+
+    successes += events[details->event_number - 1](details->pack, draw_piles, details->draw_pile_count);
   }
   printf("Successes: %d\n", successes);
 

@@ -19,6 +19,8 @@ int *CardPackGetCard(CardPack *pack, int card_id);
 
 void CardPackDelete(CardPack *pack);
 
+void CardPrint(int* card, int fields);
+
 // DrawPool Struct
 
 typedef struct {

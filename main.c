@@ -70,10 +70,11 @@ int main(int argc, char **argv) {
     free(a);
   }
 
-  float successes = (float) success_count;
-  float total_iter = 2500000.f; // NOLINT *magic*
-  float total_threads = (float) numThreads;
-  printf("Output of simulation: %f", (successes / (total_iter * total_threads)));
+  double successes = (double) success_count;
+  double total_iter = 2500000.0; // NOLINT *magic*
+  double total_threads = (double) numThreads;
+  // HACK: Ask if this is the way to do it, and if it is, how big is my error margin
+  printf("Output of simulation: %f", (successes / (total_iter * total_threads)) * 100.0);
 
   // Cleanup
   free(threads);
@@ -317,12 +318,12 @@ DrawPool *DrawPoolClone(DrawPool *other) {
 }
 
 void DrawPoolShuffle(DrawPool *self, randData *rng_machine) {
-  for (int i = 0; i < self->card_count - 1; i++) {
-    int swap_position = RandomInt(i, self->card_count - 1, rng_machine);
-    int swap_value = self->card_ids[swap_position];
+  for (int i = 0; i < self->card_count; i++) {
+    int j = RandomInt(0, self->card_count - 1, rng_machine);
 
-    self->card_ids[swap_position] = self->card_ids[i];
-    self->card_ids[i] = swap_value;
+    int temp = self->card_ids[i];
+    self->card_ids[i] = self->card_ids[j];
+    self->card_ids[j] = temp;
   }
   self->top_index = 0;
 }
@@ -340,4 +341,11 @@ void DrawPoolDelete(DrawPool *self) {
     }
     free(self);
   }
+}
+
+void CardPrint(int *card, int fields) {
+  for (int i = 0; i < fields; i++) {
+    printf("%i ", card[i]);
+  }
+  printf("\n");
 }
