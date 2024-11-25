@@ -11,11 +11,13 @@ int RoyalFlush(CardPack *pack, DrawPool **draw_piles, int draw_pile_count) {
 
   const int value = 0;
   const int suit = 2;
+  const int draw_count = 5;
+  const int min_for_royal = 10;
 
   int first_suit = 0;
   bool found[] = {false, false, false, false, false};
 
-  for (int i = 0; i < 5; i++) {
+  for (int i = 0; i < draw_count; i++) {
     int *card = DrawPoolDrawCard(draw_piles[0], pack);
 
     if (i == 0) {
@@ -26,14 +28,14 @@ int RoyalFlush(CardPack *pack, DrawPool **draw_piles, int draw_pile_count) {
 
     if (card[value] == 1) {
       found[4] = true;
-    } else if (card[value] >= 10) {
-      found[card[value] - 10] = true;
+    } else if (card[value] >= min_for_royal) {
+      found[card[value] - min_for_royal] = true;
     } else {
       return false;
     }
   }
 
-  for (int i = 0; i < 5; i++) {
+  for (int i = 0; i < draw_count; i++) {
     if (!found[i]) {
       return false;
     }
