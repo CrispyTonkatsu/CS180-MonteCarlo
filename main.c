@@ -70,10 +70,10 @@ int main(int argc, char **argv) {
     free(a);
   }
 
+  // TODO: find a way to get the total_iterations here
   double successes = (double) success_count;
   double total_iter = 12500000.0; // NOLINT *magic*
   double total_threads = (double) numThreads;
-  // HACK: Ask if this is the way to do it, and if it is, how big is my error margin
   printf("Output of simulation: %f", (successes / (total_iter * total_threads)) * 100.0);
 
   // Cleanup
@@ -329,6 +329,9 @@ void DrawPoolShuffle(DrawPool *self, randData *rng_machine) {
 }
 
 int *DrawPoolDrawCard(DrawPool *self, CardPack *pack) {
+  if (self->top_index == self->card_count) {
+    return NULL;
+  }
   int *output = CardPackGetCard(pack, self->card_ids[self->top_index]);
   self->top_index++;
   return output;

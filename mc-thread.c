@@ -1,8 +1,11 @@
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "mc-head.h"
+
+// Playing card events implementation
 
 int RoyalFlush(CardPack *pack, DrawPool **draw_piles, int draw_pile_count) {
   if (draw_pile_count < 1) {
@@ -137,17 +140,165 @@ int FourSuitsOrFacePair(CardPack *pack, DrawPool **draw_piles, int draw_pile_cou
   return false;
 }
 
-int Fifty50(CardPack *pack, DrawPool **draw_piles, int draw_pile_count) {
-  (void) draw_pile_count;
+int Switch30(CardPack *pack, DrawPool **draw_piles, int draw_pile_count) {
+  if (draw_pile_count < 1) {
+    printf("Not enough draw piles. Needs: 1\n");
+    return 0;
+  }
+
+  int switches_remaining = 30; // NOLINT *magic*
   int *card = DrawPoolDrawCard(draw_piles[0], pack);
-  return card[1] == 0;
+  bool prev_red = card[1];
+  while (card != NULL) {
+    if (card[1] != prev_red) {
+      switches_remaining--;
+      prev_red = card[1];
+
+      if (switches_remaining == 0) {
+        return true;
+      }
+    }
+    card = DrawPoolDrawCard(draw_piles[0], pack);
+  }
+
+  return false;
+}
+
+// Pokemon events implementation
+int EachPlayerDrawsStage(CardPack *pack, DrawPool **draw_piles, int draw_pile_count) {
+  if (draw_pile_count < 3) {
+    printf("Not enough draw piles. Needs: 3\n");
+    return 0;
+  }
+
+  bool stages_found[] = {false, false, false};
+
+  for (int i = 0; i < 3; i++) {
+    int *cards[] = {
+        DrawPoolDrawCard(draw_piles[i], pack),
+        DrawPoolDrawCard(draw_piles[i], pack),
+        DrawPoolDrawCard(draw_piles[i], pack),
+    };
+
+    if (cards[0][3] == cards[1][3] && cards[1][3] == cards[2][3]) {
+      if (stages_found[cards[0][3]]) {
+        return false;
+      }
+      stages_found[cards[0][3]] = true;
+    } else {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+bool TeamBattleInvulCheck(int *team_0[2], int *team_1[2]) {
+  for (int i = 0; i < 2; i++) {
+    for (int j = 0; j < 2; j++) {
+      float dealt = TypeChartXAttackYFull(team_0[i][1], team_0[i][2], team_1[j][1], team_1[j][2]);
+      float recieved = TypeChartXAttackYFull(team_1[j][1], team_1[j][2], team_0[i][1], team_0[i][2]);
+
+      if (dealt == 0.0 || recieved == 0.0) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+int NoEffectAttack(CardPack *pack, DrawPool **draw_piles, int draw_pile_count) {
+  if (draw_pile_count < 3) {
+    printf("Not enough draw piles. Needs: 3\n");
+    return 0;
+  }
+
+  int *player0[] = {
+      DrawPoolDrawCard(draw_piles[0], pack),
+      DrawPoolDrawCard(draw_piles[0], pack),
+  };
+
+  int *player1[] = {
+      DrawPoolDrawCard(draw_piles[1], pack),
+      DrawPoolDrawCard(draw_piles[1], pack),
+  };
+
+  int *player2[] = {
+      DrawPoolDrawCard(draw_piles[2], pack),
+      DrawPoolDrawCard(draw_piles[2], pack),
+  };
+
+  int **teams[3] = {player0, player1, player2};
+
+  for (int i = 0; i < 2; i++) {
+    for (int j = i; j < 3; j++) {
+      if (TeamBattleInvulCheck(teams[i], teams[j])) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+int P1ChainOrZeroButP2No(CardPack *pack, DrawPool **draw_piles, int draw_pile_count) {
+  if (draw_pile_count < 2) {
+    printf("Not enough draw piles. Needs: 2\n");
+    return 0;
+  }
+
+  const int cards_to_draw = 7;
+
+  int *players[2][cards_to_draw];
+
+  int chain_count[] = {0, 0};
+  int zero_count[] = {0, 0};
+
+  for (int i = 0; i < 2; i++) {
+    int **player = players[i];
+
+    for (int j = 0; j < cards_to_draw; j++) {
+      player[j] = DrawPoolDrawCard(draw_piles[i], pack);
+
+      if (player[j][3] == 0) {
+        zero_count[i]++;
+      }
+
+      int same_family = 0;
+      for (int k = 0; k < j; k++) {
+        if (player[k][0] == player[j][0]) {
+          same_family++;
+        }
+      }
+
+      if (same_family == 2) {
+        chain_count[i]++;
+      }
+    }
+  }
+
+  if ((chain_count[1] == 1) != (zero_count[1] == 2)) {
+    return false;
+  }
+
+  if ((chain_count[0] == 1) != (zero_count[0] == 2)) {
+    return true;
+  }
+
+  return false;
 }
 
 int (*const events[])(CardPack *, DrawPool **, int) = {
+    // Playing card events
     &RoyalFlush,
     &FourOfAKind,
     &FourSuitsOrFacePair,
-    &Fifty50,
+    &Switch30,
+    // Pokemon events
+    &EachPlayerDrawsStage,
+    &NoEffectAttack,
+    &P1ChainOrZeroButP2No,
 };
 
 // TODO: Get rid of this and get it into the EventDetails struct when we can finally read it off somewhere
@@ -155,7 +306,10 @@ int const event_iterations[] = {
     12500000,
     12500000,
     12500000,
-    1,
+    12500000,
+    12500000,
+    12500000,
+    12500000,
 };
 
 void *EventRun(void *data) {
