@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "mc-head.h"
 
@@ -44,6 +45,98 @@ int RoyalFlush(CardPack *pack, DrawPool **draw_piles, int draw_pile_count) {
   return true;
 }
 
+int FourOfAKind(CardPack *pack, DrawPool **draw_piles, int draw_pile_count) {
+  if (draw_pile_count < 1) {
+    printf("Not enough draw piles. Needs: 1\n");
+    return 0;
+  }
+
+  const int draw_count = 5;
+
+  int found[13] = {0}; // NOLINT *magic*
+
+  for (int i = 0; i < draw_count; i++) {
+    int *card = DrawPoolDrawCard(draw_piles[0], pack);
+    found[card[0] - 1]++;
+  }
+
+  for (int i = 0; i < 13; i++) { // NOLINT *magic*
+    if (found[i] >= 4) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+int FourOrTwo(CardPack *pack, DrawPool **draw_piles, int draw_pile_count) {
+  if (draw_pile_count < 1) {
+    printf("Not enough draw piles. Needs: 1\n");
+    return 0;
+  }
+
+  const int draw_count = 5;
+
+  int found[13] = {0}; // NOLINT *magic*
+
+  for (int i = 0; i < draw_count; i++) {
+    int *card = DrawPoolDrawCard(draw_piles[0], pack);
+    found[card[0] - 1]++;
+  }
+
+  for (int i = 0; i < 13; i++) { // NOLINT *magic*
+    if (found[i] >= 4) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+int FourSuitsOrFacePair(CardPack *pack, DrawPool **draw_piles, int draw_pile_count) {
+  if (draw_pile_count < 1) {
+    printf("Not enough draw piles. Needs: 1\n");
+    return 0;
+  }
+
+  int *card = NULL;
+  bool suits_found[] = {false, false, false, false}; // NOLINT *magic*
+  int faces_found[] = {0, 0, 0};
+
+  for (int i = 0; i < 7; i++) { // NOLINT *magic*
+    card = DrawPoolDrawCard(draw_piles[0], pack);
+    suits_found[card[2]] = true;
+
+    if (card[3] == 1) {
+      faces_found[card[0] - 11]++; // NOLINT *magic*
+    }
+  }
+
+  bool all_suits = true;
+  for (int i = 0; i < 4; i++) {
+    if (!suits_found[i]) {
+      all_suits = false;
+      break;
+    }
+  }
+
+  if (all_suits) {
+    return true;
+  }
+
+  int face_pairs_remaining = 2;
+  for (int i = 0; i < 3; i++) {
+    if (faces_found[i] == 2) {
+      face_pairs_remaining--;
+    }
+  }
+  if (face_pairs_remaining == 0) {
+    return true;
+  }
+
+  return false;
+}
+
 int Fifty50(CardPack *pack, DrawPool **draw_piles, int draw_pile_count) {
   (void) draw_pile_count;
   int *card = DrawPoolDrawCard(draw_piles[0], pack);
@@ -52,12 +145,16 @@ int Fifty50(CardPack *pack, DrawPool **draw_piles, int draw_pile_count) {
 
 int (*const events[])(CardPack *, DrawPool **, int) = {
     &RoyalFlush,
+    &FourOfAKind,
+    &FourSuitsOrFacePair,
     &Fifty50,
 };
 
 // TODO: Get rid of this and get it into the EventDetails struct when we can finally read it off somewhere
 int const event_iterations[] = {
-    2500000,
+    12500000,
+    12500000,
+    12500000,
     1,
 };
 

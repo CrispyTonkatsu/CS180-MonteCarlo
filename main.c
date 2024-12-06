@@ -71,7 +71,7 @@ int main(int argc, char **argv) {
   }
 
   double successes = (double) success_count;
-  double total_iter = 2500000.0; // NOLINT *magic*
+  double total_iter = 12500000.0; // NOLINT *magic*
   double total_threads = (double) numThreads;
   // HACK: Ask if this is the way to do it, and if it is, how big is my error margin
   printf("Output of simulation: %f", (successes / (total_iter * total_threads)) * 100.0);
