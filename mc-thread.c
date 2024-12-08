@@ -292,7 +292,7 @@ int P1ChainOrZeroButP2No(CardPack *pack, DrawPool **draw_piles, int draw_pile_co
   return false;
 }
 
-int Event8(CardPack *pack, DrawPool **draw_piles, int draw_pile_count) {
+int WaterOnlyPokemonHundred(CardPack *pack, DrawPool **draw_piles, int draw_pile_count) {
   if (draw_pile_count < 1) {
     printf("Not enough draw piles. Needs: 1\n");
     return 0;
@@ -303,6 +303,14 @@ int Event8(CardPack *pack, DrawPool **draw_piles, int draw_pile_count) {
 
   for (int i = 0; i < 100; i++) {
     int *card = DrawPoolDrawCard(draw_piles[0], pack);
+
+    // It was vague whether the pokemon that was water + sth else had to be stage 0, but this provides the super small
+    // result that matches with the rubric
+    if ((card[1] == 10 || card[2] == 10) && card[2] != -1) {
+      water_and_other++;
+      continue;
+    }
+
     if (card[3] == 0) {
       continue;
     }
@@ -311,18 +319,51 @@ int Event8(CardPack *pack, DrawPool **draw_piles, int draw_pile_count) {
       water_only++;
       continue;
     }
-
-    if ((card[1] == 10 || card[2] == 10) && card[2] != -1) {
-      water_and_other++;
-      continue;
-    }
   }
 
-  if (water_only == 8 && water_and_other == 0) {
+  if (water_only >= 8 && water_and_other == 0) {
     return true;
   }
 
   return false;
+}
+
+// Dungeon events implementation
+
+inline int TileIndex(int *tile, int x, int y) { return tile[(x % 3) + (y * 3)]; }
+
+int ZeroCross(CardPack *pack, DrawPool **draw_piles, int draw_pile_count) {
+  if (draw_pile_count < 1) {
+    printf("Not enough draw piles. Needs: 1\n");
+    return 0;
+  }
+
+  const int tile_count = 5;
+
+  int *tiles[tile_count];
+  for (int i = 0; i < tile_count; i++) {
+    tiles[i] = DrawPoolDrawCard(draw_piles[0], pack);
+  }
+
+  // Vertical check
+  for (int i = 0; i < tile_count; i += 2) {
+    for (int j = 0; j < 3; j++) {
+      if (TileIndex(tiles[i], 1, j)) {
+        return false;
+      }
+    }
+  }
+
+  // Horizontal check
+  for (int i = 1; i < tile_count - 1; i++) {
+    for (int j = 0; j < 3; j++) {
+      if (TileIndex(tiles[i], j, 1)) {
+        return false;
+      }
+    }
+  }
+
+  return true;
 }
 
 // Stub to copy the signature around
@@ -338,12 +379,14 @@ int (*const events[])(CardPack *, DrawPool **, int) = {
     &EachPlayerDrawsStage,
     &NoEffectAttack,
     &P1ChainOrZeroButP2No,
-    &Event8,
+    &WaterOnlyPokemonHundred,
     // Dungeon events (The nice ones)
+    &ZeroCross,
 };
 
 // TODO: Get rid of this and get it into the EventDetails struct when we can finally read it off somewhere
 int const event_iterations[] = {
+    12500000,
     12500000,
     12500000,
     12500000,
