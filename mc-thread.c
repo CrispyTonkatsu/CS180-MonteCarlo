@@ -366,8 +366,93 @@ int ZeroCross(CardPack *pack, DrawPool **draw_piles, int draw_pile_count) {
   return true;
 }
 
-// Stub to copy the signature around
-/*int Event(CardPack *pack, DrawPool **draw_piles, int draw_pile_count) {}*/
+int ZeroX(CardPack *pack, DrawPool **draw_piles, int draw_pile_count) {
+  if (draw_pile_count < 1) {
+    printf("Not enough draw piles. Needs: 1\n");
+    return 0;
+  }
+
+  const int tile_count = 5;
+
+  int *tiles[tile_count];
+  for (int i = 0; i < tile_count; i++) {
+    tiles[i] = DrawPoolDrawCard(draw_piles[0], pack);
+  }
+
+  // 0->4 diagonal check
+  for (int i = 0; i < tile_count; i += 2) {
+    for (int j = 0; j < 3; j++) {
+      if (TileIndex(tiles[i], j, j)) {
+        return false;
+      }
+    }
+  }
+
+  // 1->3 diagonal check
+  for (int i = 1; i < tile_count - 1; i++) {
+    for (int j = 0; j < 3; j++) {
+      if (TileIndex(tiles[i], j, 2 - j)) {
+        return false;
+      }
+    }
+  }
+
+  return true;
+}
+
+int HundredZeroRow(CardPack *pack, DrawPool **draw_piles, int draw_pile_count) {
+  if (draw_pile_count < 1) {
+    printf("Not enough draw piles. Needs: 1\n");
+    return 0;
+  }
+
+  const int zeroes_in_row = 100;
+  int zero_count[] = {0, 0, 0};
+  int *tile = DrawPoolDrawCard(draw_piles[0], pack);
+
+  while (tile != NULL) {
+    for (int y = 0; y < 3; y++) {
+      for (int x = 0; x < 3; x++) {
+        if (TileIndex(tile, x, y)) {
+          zero_count[y] = 0;
+
+        } else {
+          zero_count[y]++;
+        }
+      }
+    }
+
+    for (int i = 0; i < 3; i++) {
+      if (zero_count[i] >= zeroes_in_row) {
+        return true;
+      }
+    }
+
+    tile = DrawPoolDrawCard(draw_piles[0], pack);
+  }
+
+  return false;
+}
+
+int OpeningAvailable(CardPack *pack, DrawPool **draw_piles, int draw_pile_count) {
+  if (draw_pile_count < 2) {
+    printf("Not enough draw piles. Needs: 2\n");
+    return 0;
+  }
+
+  for (int i = 0; i < 4; i++) {
+    int *tile_L = DrawPoolDrawCard(draw_piles[0], pack);
+    int *tile_R = DrawPoolDrawCard(draw_piles[1], pack);
+
+    for (int j = 0; j < 3; j++) {
+      if(TileIndex(tile_L, 2, j) == 0 && TileIndex(tile_R, 0, j) == 0){
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
 
 int (*const events[])(CardPack *, DrawPool **, int) = {
     // Playing card events
@@ -382,19 +467,9 @@ int (*const events[])(CardPack *, DrawPool **, int) = {
     &WaterOnlyPokemonHundred,
     // Dungeon events (The nice ones)
     &ZeroCross,
-};
-
-// TODO: Get rid of this and get it into the EventDetails struct when we can finally read it off somewhere
-int const event_iterations[] = {
-    12500000,
-    12500000,
-    12500000,
-    12500000,
-    12500000,
-    12500000,
-    12500000,
-    12500000,
-    12500000,
+    &ZeroX, // TODO: Check this one
+    &HundredZeroRow, // TODO: check this one
+    &OpeningAvailable,
 };
 
 void *EventRun(void *data) {
@@ -410,7 +485,7 @@ void *EventRun(void *data) {
 
   // Running the event
   int successes = 0;
-  for (int i = 0; i < event_iterations[details->event_number - 1]; i++) {
+  for (int i = 0; i < details->iteration_count; i++) {
     for (int j = 0; j < details->draw_pile_count; j++) {
       DrawPoolShuffle(draw_piles[j], &rng_machine);
     }

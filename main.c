@@ -9,6 +9,21 @@
 
 #include "mc-head.h"
 
+int const event_iterations[] = {
+    12500000,
+    12500000,
+    12500000,
+    12500000,
+    12500000,
+    12500000,
+    12500000,
+    12500000,
+    12500000,
+    12500000,
+    1250000,
+    1250000,
+};
+
 void GetSimSetup(const char *filename, char filepaths[][128], int *numFiles, int *numThreads, int *eventNumber) {
   FILE *fp = NULL;
 
@@ -49,7 +64,8 @@ int main(int argc, char **argv) {
   GetSimSetup(argv[1], filepaths, &numFiles, &numThreads, &eventNumber);
 
   // Setup for the threads
-  EventDetails *event_details = EventDetailsCreate(filepaths[0], &filepaths[1], numFiles - 1, eventNumber);
+  EventDetails *event_details =
+      EventDetailsCreate(filepaths[0], &filepaths[1], numFiles - 1, eventNumber, event_iterations[eventNumber - 1]);
   if (event_details == NULL) {
     printf("Failed to get all required data.\nRead above messages to see why.\n");
     return -1;
@@ -71,9 +87,8 @@ int main(int argc, char **argv) {
     free(a);
   }
 
-  // TODO: find a way to get the total_iterations here
   double successes = (double) success_count;
-  double total_iter = 12500000.0; // NOLINT *magic*
+  double total_iter = event_iterations[eventNumber - 1];
   double total_threads = (double) numThreads;
   printf("Output of simulation: %f", (successes / (total_iter * total_threads)) * 100.0);
 
@@ -86,7 +101,8 @@ int main(int argc, char **argv) {
 
 // EventDetails Implementation
 
-EventDetails *EventDetailsCreate(char *card_file, char (*draw_pool_files)[128], int draw_pool_count, int event_number) {
+EventDetails *EventDetailsCreate(
+    char *card_file, char (*draw_pool_files)[128], int draw_pool_count, int event_number, int iter_count) {
   CardPack *cards = CardPackCreate(card_file);
   if (cards == NULL) {
     printf("Failed to create the card database.\n");
@@ -100,6 +116,7 @@ EventDetails *EventDetailsCreate(char *card_file, char (*draw_pool_files)[128], 
   event_details->pack = cards;
   event_details->draw_piles = calloc(draw_pool_count, sizeof(DrawPool *));
   event_details->draw_pile_count = draw_pool_count;
+  event_details->iteration_count = iter_count;
 
   DrawPool **hands = event_details->draw_piles;
 

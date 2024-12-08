@@ -46,14 +46,10 @@ typedef struct {
   DrawPool **draw_piles;
   int draw_pile_count;
   int event_number;
-
-  // HACK:
-  // Come up with this number for now: 2.5 Million.
-  // Eventually it will be a diff value per event
   int iteration_count;
 } EventDetails;
 
-EventDetails *EventDetailsCreate(char *card_file, char (*draw_pool_files)[128], int draw_pool_count, int event_number);
+EventDetails *EventDetailsCreate(char *card_file, char (*draw_pool_files)[128], int draw_pool_count, int event_number, int iter_count);
 
 DrawPool **EventDetailsGetShuffledCards(EventDetails *details, randData *rng_machine);
 
