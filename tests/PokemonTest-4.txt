@@ -1,5 +1,5 @@
 8
-1
+2
 32
 2_Pokemon.txt
 2_PartyAll.txt

@@ -261,33 +261,72 @@ int P1ChainOrZeroButP2No(CardPack *pack, DrawPool **draw_piles, int draw_pile_co
     for (int j = 0; j < cards_to_draw; j++) {
       player[j] = DrawPoolDrawCard(draw_piles[i], pack);
 
+      // Error might be here
       if (player[j][3] == 0) {
         zero_count[i]++;
       }
 
-      int same_family = 0;
+      bool evo_stages[] = {false, false, false};
+      evo_stages[player[j][3]] = true;
+
       for (int k = 0; k < j; k++) {
         if (player[k][0] == player[j][0]) {
-          same_family++;
+          evo_stages[player[k][3]] = true;
         }
       }
 
-      if (same_family == 2) {
+      if (evo_stages[0] == true && evo_stages[0] == evo_stages[1] && evo_stages[1] == evo_stages[2]) {
         chain_count[i]++;
       }
     }
   }
 
-  if ((chain_count[1] == 1) != (zero_count[1] == 2)) {
+  if ((chain_count[1] >= 1) || (zero_count[1] >= 2)) {
     return false;
   }
 
-  if ((chain_count[0] == 1) != (zero_count[0] == 2)) {
+  if ((chain_count[0] >= 1) || (zero_count[0] >= 2)) {
     return true;
   }
 
   return false;
 }
+
+int Event8(CardPack *pack, DrawPool **draw_piles, int draw_pile_count) {
+  if (draw_pile_count < 1) {
+    printf("Not enough draw piles. Needs: 1\n");
+    return 0;
+  }
+
+  int water_only = 0;
+  int water_and_other = 0;
+
+  for (int i = 0; i < 100; i++) {
+    int *card = DrawPoolDrawCard(draw_piles[0], pack);
+    if (card[3] == 0) {
+      continue;
+    }
+
+    if (card[1] == 10 && card[2] == -1) {
+      water_only++;
+      continue;
+    }
+
+    if ((card[1] == 10 || card[2] == 10) && card[2] != -1) {
+      water_and_other++;
+      continue;
+    }
+  }
+
+  if (water_only == 8 && water_and_other == 0) {
+    return true;
+  }
+
+  return false;
+}
+
+// Stub to copy the signature around
+/*int Event(CardPack *pack, DrawPool **draw_piles, int draw_pile_count) {}*/
 
 int (*const events[])(CardPack *, DrawPool **, int) = {
     // Playing card events
@@ -299,10 +338,13 @@ int (*const events[])(CardPack *, DrawPool **, int) = {
     &EachPlayerDrawsStage,
     &NoEffectAttack,
     &P1ChainOrZeroButP2No,
+    &Event8,
+    // Dungeon events (The nice ones)
 };
 
 // TODO: Get rid of this and get it into the EventDetails struct when we can finally read it off somewhere
 int const event_iterations[] = {
+    12500000,
     12500000,
     12500000,
     12500000,
@@ -346,9 +388,10 @@ void *EventRun(void *data) {
   return (void *) output;
 }
 
-// Pokemon Formulas
+// Playing card attributes
 enum PC52_ATT { PC52_value, PC52_color, PC52_suit, PC52_face };
 
+// Pokemon Formulas
 enum PKMN_ATT { PKMN_evoline, PKMN_type1, PKMN_type2, PKMN_evostage };
 
 //  Multiplier  (Effectiveness)             (EXAMPLE, with types)

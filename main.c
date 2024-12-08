@@ -54,6 +54,7 @@ int main(int argc, char **argv) {
     printf("Failed to get all required data.\nRead above messages to see why.\n");
     return -1;
   }
+
   pthread_t *threads = calloc(numThreads, sizeof(pthread_t));
 
   // Code to create and give the pointer to the threads
