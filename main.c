@@ -7,7 +7,7 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "mc-head.h"
+#include "mc-header.h"
 
 int const event_iterations[] = {
     200000000,

@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "mc-head.h"
+#include "mc-header.h"
 
 // Playing card events implementation
 
