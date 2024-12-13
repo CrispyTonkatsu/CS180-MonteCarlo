@@ -445,7 +445,7 @@ int OpeningAvailable(CardPack *pack, DrawPool **draw_piles, int draw_pile_count)
     int *tile_R = DrawPoolDrawCard(draw_piles[1], pack);
 
     for (int j = 0; j < 3; j++) {
-      if(TileIndex(tile_L, 2, j) == 0 && TileIndex(tile_R, 0, j) == 0){
+      if (TileIndex(tile_L, 2, j) == 0 && TileIndex(tile_R, 0, j) == 0) {
         return true;
       }
     }
@@ -486,8 +486,10 @@ void *EventRun(void *data) {
   // Running the event
   int successes = 0;
   for (int i = 0; i < details->iteration_count; i++) {
-    for (int j = 0; j < details->draw_pile_count; j++) {
-      DrawPoolShuffle(draw_piles[j], &rng_machine);
+    if (i > 0) {
+      for (int j = 0; j < details->draw_pile_count; j++) {
+        DrawPoolShuffle(draw_piles[j], &rng_machine);
+      }
     }
 
     successes += events[details->event_number - 1](details->pack, draw_piles, details->draw_pile_count);

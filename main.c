@@ -64,8 +64,8 @@ int main(int argc, char **argv) {
   GetSimSetup(argv[1], filepaths, &numFiles, &numThreads, &eventNumber);
 
   // Setup for the threads
-  EventDetails *event_details =
-      EventDetailsCreate(filepaths[0], &filepaths[1], numFiles - 1, eventNumber, event_iterations[eventNumber - 1]);
+  EventDetails *event_details = EventDetailsCreate(
+      filepaths[0], &filepaths[1], numFiles - 1, eventNumber, (event_iterations[eventNumber - 1] / numThreads));
   if (event_details == NULL) {
     printf("Failed to get all required data.\nRead above messages to see why.\n");
     return -1;
@@ -89,8 +89,7 @@ int main(int argc, char **argv) {
 
   double successes = (double) success_count;
   double total_iter = event_iterations[eventNumber - 1];
-  double total_threads = (double) numThreads;
-  printf("%f", (successes / (total_iter * total_threads)) * 100.0);
+  printf("%f", (successes / (total_iter)) * 100.0);
 
   // Cleanup
   free(threads);
@@ -205,11 +204,11 @@ CardPack *CardPackCreate(char *card_file_path) {
     return NULL;
   }
 
-  int change_dir = chdir("./SimEvents/");
-  if (change_dir == -1) {
-    printf("Null card folder path.\n");
-    return NULL;
-  }
+  /*int change_dir = chdir("SimEvents");*/
+  /*if (change_dir == -1) {*/
+  /*  printf("Null card folder path.\n");*/
+  /*  return NULL;*/
+  /*}*/
 
   FILE *card_file = fopen(card_file_path, "r");
   if (card_file == NULL) {
@@ -237,7 +236,7 @@ CardPack *CardPackCreate(char *card_file_path) {
     return NULL;
   }
 
-  change_dir = chdir("../");
+  /*change_dir = chdir("..");*/
   fclose(card_file);
   return pack;
 }
@@ -265,11 +264,11 @@ DrawPool *DrawPoolCreate(const char *hand_file_path) {
     return NULL;
   }
 
-  int change_dir = chdir("./SimEvents/");
-  if (change_dir == -1) {
-    printf("Null card folder path.\n");
-    return NULL;
-  }
+  /*int change_dir = chdir("SimEvents");*/
+  /*if (change_dir == -1) {*/
+  /*  printf("Null card folder path.\n");*/
+  /*  return NULL;*/
+  /*}*/
 
   FILE *hand_file = fopen(hand_file_path, "r");
   if (hand_file == NULL) {
@@ -313,7 +312,7 @@ DrawPool *DrawPoolCreate(const char *hand_file_path) {
   draw_pool->card_count = hand_size;
   draw_pool->top_index = 0;
 
-  change_dir = chdir("../");
+  /*change_dir = chdir("..");*/
   fclose(hand_file);
   return draw_pool;
 }
