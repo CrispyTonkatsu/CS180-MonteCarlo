@@ -10,18 +10,18 @@
 #include "mc-head.h"
 
 int const event_iterations[] = {
-    12500000,
-    12500000,
-    12500000,
-    12500000,
-    12500000,
-    12500000,
-    12500000,
-    12500000,
-    12500000,
-    12500000,
-    1250000,
-    1250000,
+    200000000,
+    100000000,
+    100000000,
+    100000000,
+    100000000,
+    100000000,
+    200000000,
+    0,
+    10000000,
+    10000000,
+    40000000,
+    10000000,
 };
 
 void GetSimSetup(const char *filename, char filepaths[][128], int *numFiles, int *numThreads, int *eventNumber) {
@@ -90,7 +90,7 @@ int main(int argc, char **argv) {
   double successes = (double) success_count;
   double total_iter = event_iterations[eventNumber - 1];
   double total_threads = (double) numThreads;
-  printf("Output of simulation: %f", (successes / (total_iter * total_threads)) * 100.0);
+  printf("%f", (successes / (total_iter * total_threads)) * 100.0);
 
   // Cleanup
   free(threads);
@@ -205,7 +205,7 @@ CardPack *CardPackCreate(char *card_file_path) {
     return NULL;
   }
 
-  int change_dir = chdir("./decks/");
+  int change_dir = chdir("./SimEvents/");
   if (change_dir == -1) {
     printf("Null card folder path.\n");
     return NULL;
@@ -265,7 +265,7 @@ DrawPool *DrawPoolCreate(const char *hand_file_path) {
     return NULL;
   }
 
-  int change_dir = chdir("./decks/");
+  int change_dir = chdir("./SimEvents/");
   if (change_dir == -1) {
     printf("Null card folder path.\n");
     return NULL;

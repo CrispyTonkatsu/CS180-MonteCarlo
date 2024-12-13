@@ -492,7 +492,7 @@ void *EventRun(void *data) {
 
     successes += events[details->event_number - 1](details->pack, draw_piles, details->draw_pile_count);
   }
-  printf("Successes: %d\n", successes);
+  /*printf("Successes: %d\n", successes);*/
 
   // Cleanup of the hands used for the simulation
   for (int i = 0; i < details->draw_pile_count; i++) {
