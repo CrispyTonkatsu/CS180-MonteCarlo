@@ -9,6 +9,8 @@
 
 #include "mc-header.h"
 
+/*#define LOCAL_MACHINE*/
+
 int const event_iterations[] = {
     200000000,
     100000000,
@@ -88,7 +90,7 @@ int main(int argc, char **argv) {
   }
 
   double successes = (double) success_count;
-  double total_iter = event_iterations[eventNumber - 1];
+  double total_iter = (event_iterations[eventNumber - 1] / numThreads) * numThreads;
   printf("%f", (successes / (total_iter)) * 100.0);
 
   // Cleanup
@@ -204,11 +206,13 @@ CardPack *CardPackCreate(char *card_file_path) {
     return NULL;
   }
 
-  /*int change_dir = chdir("SimEvents");*/
-  /*if (change_dir == -1) {*/
-  /*  printf("Null card folder path.\n");*/
-  /*  return NULL;*/
-  /*}*/
+#ifdef LOCAL_MACHINE
+  int change_dir = chdir("SimEvents");
+  if (change_dir == -1) {
+    printf("Null card folder path.\n");
+    return NULL;
+  }
+#endif
 
   FILE *card_file = fopen(card_file_path, "r");
   if (card_file == NULL) {
@@ -236,7 +240,9 @@ CardPack *CardPackCreate(char *card_file_path) {
     return NULL;
   }
 
-  /*change_dir = chdir("..");*/
+#ifdef LOCAL_MACHINE
+  change_dir = chdir("..");
+#endif
   fclose(card_file);
   return pack;
 }
@@ -264,11 +270,13 @@ DrawPool *DrawPoolCreate(const char *hand_file_path) {
     return NULL;
   }
 
-  /*int change_dir = chdir("SimEvents");*/
-  /*if (change_dir == -1) {*/
-  /*  printf("Null card folder path.\n");*/
-  /*  return NULL;*/
-  /*}*/
+#ifdef LOCAL_MACHINE
+  int change_dir = chdir("SimEvents");
+  if (change_dir == -1) {
+    printf("Null card folder path.\n");
+    return NULL;
+  }
+#endif
 
   FILE *hand_file = fopen(hand_file_path, "r");
   if (hand_file == NULL) {
@@ -312,7 +320,9 @@ DrawPool *DrawPoolCreate(const char *hand_file_path) {
   draw_pool->card_count = hand_size;
   draw_pool->top_index = 0;
 
-  /*change_dir = chdir("..");*/
+#ifdef LOCAL_MACHINE
+  change_dir = chdir("..");
+#endif
   fclose(hand_file);
   return draw_pool;
 }

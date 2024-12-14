@@ -129,7 +129,7 @@ int FourSuitsOrFacePair(CardPack *pack, DrawPool **draw_piles, int draw_pile_cou
 
   int face_pairs_remaining = 2;
   for (int i = 0; i < 3; i++) {
-    if (faces_found[i] == 2) {
+    if (faces_found[i] >= 2) {
       face_pairs_remaining--;
     }
   }
